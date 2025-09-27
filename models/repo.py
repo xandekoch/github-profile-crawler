@@ -1,3 +1,5 @@
+from datetime import datetime
+
 def build_repo_document(repo_data: dict, user_id) -> dict:
     return {
         "external_id": repo_data["id"],
@@ -15,4 +17,5 @@ def build_repo_document(repo_data: dict, user_id) -> dict:
         "forks_count": repo_data["forks_count"],
         "open_issues_count": repo_data["open_issues_count"],
         "owner_id": user_id,
+        "crawled_at": datetime.utcnow().isoformat()
     }

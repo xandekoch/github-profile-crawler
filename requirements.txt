@@ -4,3 +4,4 @@ pymongo
 requests
 pydantic-settings
 python-dotenv
+chromadb

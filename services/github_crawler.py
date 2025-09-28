@@ -6,13 +6,10 @@ from models.user import build_user_document
 from models.repo import build_repo_document
 from models.branch import build_branch_document
 from models.commit import build_commit_document
+from chromadb.api.models.Collection import Collection
+from services.vector_db import vectorize_commits
 
-
-def save_json(data, path):
-    with open(path, "w", encoding="utf-8") as f:
-        json.dump(data, f, indent=2)
-
-def run_github_user_crawl(username: str, mongo_client):
+def run_github_user_crawl(username: str, mongo_client, collection: Collection):
     db = mongo_client["github_crawler"]
     users_col = db["users"]
     repos_col = db["repos"]
@@ -22,7 +19,7 @@ def run_github_user_crawl(username: str, mongo_client):
     existing_user = users_col.find_one({"login": username})
     if existing_user:
         print(f"🔁 User {username} already exists. Calling update_user()...")
-        return update_user(existing_user, mongo_client)
+        return update_user(existing_user, mongo_client, collection)
 
     print(f"🚀 Starting crawl for {username}")
 
@@ -50,11 +47,11 @@ def run_github_user_crawl(username: str, mongo_client):
 
                 for repo in repos:
                     repo_doc = build_repo_document(repo, user_id)
-                    repo_id = repos_col.insert_one(repo_doc, session=session).inserted_id
+                    repository = repos_col.insert_one(repo_doc, session=session).inserted_id
                     repo_name = repo["name"]
 
                     branches = fetch_repo_branches(username, repo_name)
-                    branch_docs = [build_branch_document(b, repo_id) for b in branches]
+                    branch_docs = [build_branch_document(b, repository) for b in branches]
                     if branch_docs:
                         branches_col.insert_many(branch_docs, session=session)
 
@@ -71,15 +68,15 @@ def run_github_user_crawl(username: str, mongo_client):
                                 if branch_name not in unique_commits[sha]["found_in_branches"]:
                                     unique_commits[sha]["found_in_branches"].append(branch_name)
 
-                    commit_docs = [build_commit_document(c, repo_id) for c in unique_commits.values()]
+                    commit_docs = [build_commit_document(c, repository) for c in unique_commits.values()]
                     if commit_docs:
                         commits_col.insert_many(commit_docs, session=session)
+                        vectorize_commits(commit_docs, collection)
 
         print("✅ Crawl and transaction committed successfully.")
 
     except Exception as e:
         raise RuntimeError(f"Transaction failed: {e}")
 
-def update_user(user_doc, mongo_client):
-    # To-Do: get Delta and insert in DB
+def update_user(user_doc, mongo_client, collection: Collection):
     pass

@@ -14,5 +14,7 @@ async def crawl_user(request: CrawlRequest):
     try:
         run_github_user_crawl(request.username, mongo_client)
         return {"status": "success", "message": f"User {request.username} crawled successfully."}
-    except Exception as e:
+    except HTTPException:
+        raise
+    except RuntimeError as e:
         raise HTTPException(status_code=500, detail=str(e))

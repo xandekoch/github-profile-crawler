@@ -1,8 +1,9 @@
 import requests
+from core.config import settings
 from typing import List, Dict
 
 GITHUB_API_BASE = "https://api.github.com"
-HEADERS = {"Accept": "application/vnd.github.v3+json"}
+HEADERS = {"Accept": "application/vnd.github.v3+json", "Authorization": settings.GITHUB_TOKEN}
 
 def fetch_user_profile(username: str) -> dict:
     url = f"{GITHUB_API_BASE}/users/{username}"

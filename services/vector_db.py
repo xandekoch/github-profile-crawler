@@ -9,6 +9,7 @@ def vectorize_commits(commits: List[dict], collection: Collection):
     for commit in commits:
         sha = commit["sha"]
         message = commit["message"]
+        owner_id = commit["owner_id"]
         repository = commit["repository"]
         author = commit.get("author", {})
         branches = commit.get("found_in_branches", [])
@@ -19,6 +20,7 @@ def vectorize_commits(commits: List[dict], collection: Collection):
         ids.append(sha)
         documents.append(message)
         metadatas.append({
+            "owner_id": str(owner_id),
             "repository": str(repository),
             "sha": sha,
             "author_name": author.get("name"),

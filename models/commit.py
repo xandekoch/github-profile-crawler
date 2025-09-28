@@ -2,10 +2,11 @@ from typing import List
 from bson import ObjectId
 from datetime import datetime
 
-def build_commit_document(commit_data: dict, repository: ObjectId) -> dict:
+def build_commit_document(commit_data: dict, repository: ObjectId, user_id) -> dict:
     return {
         "sha": commit_data["sha"],
         "message": commit_data["commit"]["message"],
+        "owner_id": user_id,
         "author": {
             "name": commit_data["commit"]["author"].get("name"),
             "email": commit_data["commit"]["author"].get("email"),

@@ -51,7 +51,7 @@ def run_github_user_crawl(username: str, mongo_client, collection: Collection):
                     repo_name = repo["name"]
 
                     branches = fetch_repo_branches(username, repo_name)
-                    branch_docs = [build_branch_document(b, repository) for b in branches]
+                    branch_docs = [build_branch_document(b, repository, user_id) for b in branches]
                     if branch_docs:
                         branches_col.insert_many(branch_docs, session=session)
 
@@ -68,7 +68,7 @@ def run_github_user_crawl(username: str, mongo_client, collection: Collection):
                                 if branch_name not in unique_commits[sha]["found_in_branches"]:
                                     unique_commits[sha]["found_in_branches"].append(branch_name)
 
-                    commit_docs = [build_commit_document(c, repository) for c in unique_commits.values()]
+                    commit_docs = [build_commit_document(c, repository, user_id) for c in unique_commits.values()]
                     if commit_docs:
                         commits_col.insert_many(commit_docs, session=session)
                         vectorize_commits(commit_docs, collection)
